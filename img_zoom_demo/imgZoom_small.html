@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="Generator" content="EditPlus®">
+  <meta name="Author" content="">
+  <meta name="Keywords" content="">
+  <meta name="Description" content="">
+  <title>鼠标滑过显示全图  离开显示局部</title>
+
+<script type="text/javascript" src="http://code.jquery.com/jquery-latest.js"></script>
+
+<script type="text/javascript">
+$(document).ready(function() {
+    $(".wrap img").hover(
+        function() {
+            $(this).stop().animate({
+                "opacity": "1.0",
+                "height": "200px",
+                "top": "0px",
+                "left": "0px"
+            });
+        },
+        function() {
+            $(this).stop().animate({
+                "opacity": "0.5",
+                "height": "500px",
+                "top": "-50px",
+                "left": "-150px"
+            });
+        }
+    );
+});
+
+</script>
+
+<style type="text/css">
+.wrap{
+    width:200px;
+    height:200px;
+    margin:0px;
+    overflow:hidden;
+    position:relative;
+    float:left;
+}
+.wrap a img{
+    border:none;
+    position:absolute;
+    top:-66.5px;
+    left:-150px;
+    height:500px;
+    opacity: 0.5;
+}
+</style>
+
+ </head>
+ <body>
+  <div class="wrap">
+    <a href="#">
+	    <img src="http://www.91toufang.com/data/upfiles/i_reits_img/7ced577cc191d446013899bbdda31eb3/1460078816.png" alt=""/>
+    </a>
+</div>
+<div class="wrap">
+	<a href="#">
+		<img src="http://www.91toufang.com/data/upfiles/i_reits_img/7ced577cc191d446013899bbdda31eb3/1460078816.png" alt=""/>
+	</a>
+</div>
+ </body>
+</html>
