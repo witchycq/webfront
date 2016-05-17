@@ -1,0 +1,328 @@
+﻿<script src="./jquery-1.11.2.min.js"></script>
+<script src="./donut_chart.min.js"></script>
+ <style>
+	*{margin:0;padding:0; box-sizing:border-box;}
+	table{border-collapse:collapse;border-spacing:0; }
+	a{color:#606a85;text-decoration:none;}
+	img{border:0;}
+	ul li{margin:0; padding:0; list-style:none;}
+	body{ background: #fff;font-size:14px;font-family: Arial,'Microsoft YaHei';}
+	.sequence_body{ background: #fff;width:100%; padding:0 10px;}
+	.sequence_body #main { width:100%;}
+	.sequence_body #sidebar {float: right;width: 100px;}
+	.sequence_body #sequence {width: 600px;height: 70px;}
+	#sequence text, #legend text {font-weight: 600;fill: #999;}
+	.sequence_body #chart {position: relative;width:55%; float: left; padding:10px 0 0 10px;}
+	.sequence_body #chart path {stroke: #fff;}
+	.sequence_body #explanation {position: absolute;top: 78px;left: 45px;width: 80px;text-align: center;color: #666;font-size:12px; line-height: 1.4;}
+	.sequence_body #percentage {font-size:1.5em;}
+	.sequence_body #chart_li {width:45%; float: left;color:#3e4556; padding-top: 20px;font-size: 12px;}
+	.sequence_body #chart_li p{ padding-bottom: 6px; padding-left:28px;}
+	.sequence_body #chart_li ul{ padding-left: 30px;} 
+	.sequence_body #chart_li li{ float: left;width:100%; padding:3px 0px 3px 10px; position: relative; line-height: 1.8;}
+	.sequence_body #chart_li li:before{ content: ""; position: absolute;left:0;top:50%;margin-top: -3px;width:6px;height:6px; background: #ff993e;}
+	.sequence_body #chart_li li:nth-child(2):before{ background: #ad8acc;}
+	.sequence_body #chart_li li:nth-child(3):before{ background: #c1d74d;}
+	.sequence_body #chart_li li:nth-child(4):before{ background: #7cb2c6;}
+	.sequence_body #chart_li li:nth-child(5):before{ background:rgba(60,199,193,1);}
+	.sequence_body #chart_li li:nth-child(6):before{ background: rgba(212,67,73,1);}
+	.sequence_body #chart_li li:nth-child(7):before{ background: rgba(140,86,75,1);}
+ </style>
+
+<div class="sequence_body">
+    <div id="main">
+		<div id="chart_li">
+			<p>优选资产组合:</p>
+			<ul id="chart_ul">
+			</ul>
+		</div>
+		<div id="chart">
+			<div id="explanation" style="visibility: hidden;">
+				<span id="sname"></span>
+			</div>
+		</div>
+    </div>
+    <div class="clear"></div>
+</div>
+<script type="text/javascript" >
+	var width =150;
+	var height =150;
+	var radius = Math.min(width, height) / 2;
+	var _assetGroup="";
+	var b = {
+	  w: 75, h: 30, s: 3, t: 10
+	};
+	var _colors = [["rgba(238,161,56,1)"],
+		["rgba(175,126,174,1)"],
+		["rgba(133,196,104,1)"],
+		["rgba(37,151,215,1)"],
+		["rgba(60,199,193,1)"],
+		["rgba(212,67,73,1)"],
+		["rgba(140,86,75,1)"],
+		];
+	get_colors();
+	function get_colors(){
+		for(var i=0;i<7;i++){
+			for(var j=1;j<20;j++){
+				_colors[i][j]=RGB(_colors[i][0],1-j*0.05);
+			}
+		}
+	}
+	function rgba(r,g,b,a) {
+		return ["rgba", "(", [r,g,b,a].join(), ")"].join("");
+	}
+	RGB("rgba(238,161,56,1)")
+	function RGB(rgb, opacity){
+		var re=rgb.replace("rgba(","").replace(")","").split(",");
+		return rgba(re[0],re[1],re[2],opacity);
+	}
+	var colors = {};
+	var totalSize = 0; 
+	var _root;
+	var arc,vis,partition;
+	var timer;
+	var index = 0;
+	var children_index = 0;   
+	var _parents=0;
+	vis = donut_chart.select("#chart").append("svg:svg")
+		.attr("width", width)
+		.attr("height", height)
+		.append("svg:g")
+		.attr("id", "container")
+		.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")");
+	partition = donut_chart.layout.partition()
+		.size([2 * Math.PI, radius * radius])
+		.value(function(d) { return d.size; });
+	arc = donut_chart.svg.arc()
+		.startAngle(function(d) { return d.x; })
+		.endAngle(function(d) { return d.x + d.dx; })
+		.innerRadius(function(d) { return Math.sqrt(d.y); })
+		.outerRadius(function(d) { return Math.sqrt(d.y + d.dy); });
+	refresh_donut_chart();
+	function refresh_donut_chart(){
+		index = 0;
+		children_index = 0;   
+		_parents=0;
+		colors = {};
+		$("#chart_ul").empty();
+		var json;
+		var data=jQuery.parseJSON( '{"assertGroup":{"name":"root","children":[{"name":"消费金融","children":[{"id":"37599d6865324cfab1cc4caed2b733d0","name":"夸客金融消费信贷","size":5}]},{"name":"货币基金","children":[{"id":"1705be53a93d4afe8ddf07734a77d126","name":"国泰现金管理A","size":77}]},{"name":"公募基金","children":[{"id":"632cc47f11db42adb9820c0edf864ed7","name":"南方金砖四国指数","size":50}]},{"name":"分级基金","children":[{"id":"f8588fb6292548f58f2d08d02a142ffa","name":"富国证券指数分级A","size":50}]}]}}' );
+		json=data.assertGroup;
+		_root=data.assertGroup;
+		$.each(data.assertGroup.children,function(index,item) {    
+			colors[item.name]=_colors[index][0];
+			$("#chart_ul").append("<li>"+item.name+"</li>");
+			$.each(item.children,function(Childindex,Childitem) {  
+				colors[Childitem.name]=_colors[index][Childindex+1];
+			}); 
+		});
+		createVisualization(json);
+		clearInterval(timer);
+		timer = window.setInterval(autoExpand, 1500);
+	}
+
+	function createVisualization(json) {
+		initializeBreadcrumbTrail();
+		drawLegend();
+		donut_chart.select("#togglelegend").on("click", toggleLegend);
+
+		vis.append("svg:circle")
+		  .attr("r", radius)
+		  .style("opacity", 0);
+
+		var nodes = partition.nodes(json)
+		  .filter(function(d) {
+		  return (d.dx > 0.005); 
+		  });
+
+		var path = vis.data([json]).selectAll("path")
+				  .data(nodes)
+				  .enter().append("svg:path")
+				  .attr("display", function(d) { return d.depth ? null : "none"; })
+				  .attr("d", arc)
+				  .attr("fill-rule", "evenodd")
+				  .style("fill", function(d) { return colors[d.name]; })
+				  .style("opacity", 1)
+				  .on("click", mouseover);
+
+		donut_chart.select("#container").on("mouseleave", mouseleave);
+		totalSize = json.value;
+	};
+
+	function mouseover(d) {
+		var percentage = (100 * d.value / totalSize).toPrecision(3);
+		var percentageString = percentage + "%";
+		if (percentage < 0.1) {
+			percentageString = "< 0.1%";
+		}
+
+		donut_chart.select("#sname")
+		  .text(d.name)
+		  .style("color",  colors[d.name]);
+		donut_chart.select("#explanation")
+		  .style("visibility", "");
+
+		var sequenceArray = getAncestors(d);
+		updateBreadcrumbs(sequenceArray, percentageString);
+
+		donut_chart.selectAll("path")
+		  .style("opacity", 0.3);
+		vis.selectAll("path")
+		  .filter(function(node) {
+			return (sequenceArray.indexOf(node) >= 0);
+			})
+		  .style("opacity", 1);
+	}
+
+	function mouseleave(d) {
+		donut_chart.select("#trail")
+			.style("visibility", "hidden");
+		donut_chart.selectAll("path").on("mouseover", null);
+		donut_chart.selectAll("path")
+			.transition()
+			.duration(1000)
+			.style("opacity", 1)
+			.each("end", function() {
+              donut_chart.select(this).on("mouseover", mouseover);
+            });
+		donut_chart.select("#explanation")
+		.style("visibility", "hidden");
+	}
+
+	function getAncestors(node) {
+	  var path = [];
+	  var current = node;
+	  while (current.parent) {
+		path.unshift(current);
+		current = current.parent;
+	  }
+	  return path;
+	}
+
+	function initializeBreadcrumbTrail() {
+	  var trail = donut_chart.select("#sequence").append("svg:svg")
+		  .attr("width", width)
+		  .attr("height", 50)
+		  .attr("id", "trail");
+	  trail.append("svg:text")
+		.attr("id", "endlabel")
+		.style("fill", "#000");
+	}
+	function breadcrumbPoints(d, i) {
+	  var points = [];
+	  points.push("0,0");
+	  points.push(b.w + ",0");
+	  points.push(b.w + b.t + "," + (b.h / 2));
+	  points.push(b.w + "," + b.h);
+	  points.push("0," + b.h);
+	  if (i > 0) { 
+		points.push(b.t + "," + (b.h / 2));
+	  }
+	  return points.join(" ");
+	}
+	function updateBreadcrumbs(nodeArray, percentageString) {
+	  var g = donut_chart.select("#trail")
+		  .selectAll("g")
+		  .data(nodeArray, function(d) { return d.name + d.depth; });
+
+	  var entering = g.enter().append("svg:g");
+
+	  entering.append("svg:polygon")
+		  .attr("points", breadcrumbPoints)
+		  .style("fill", function(d) { return colors[d.name]; });
+
+	  entering.append("svg:text")
+		  .attr("x", (b.w + b.t) / 2)
+		  .attr("y", b.h / 2)
+		  .attr("dy", "0.35em")
+		  .attr("text-anchor", "middle")
+		  .text(function(d) { return d.name; });
+		  
+	  g.attr("transform", function(d, i) {
+		return "translate(" + i * (b.w + b.s) + ", 0)";
+	  });
+
+	  g.exit().remove();
+
+	  donut_chart.select("#trail").select("#endlabel")
+		  .attr("x", (nodeArray.length + 0.5) * (b.w + b.s))
+		  .attr("y", b.h / 2)
+		  .attr("dy", "0.35em")
+		  .attr("text-anchor", "middle")
+		  .text(percentageString);
+
+	  donut_chart.select("#trail")
+		  .style("visibility", "");
+
+	}
+
+	function drawLegend() {
+	  var li = {
+		w: 30, h: 30, s: 3, r: 3,d:40
+	  };
+
+	  var legend = donut_chart.select("#legend").append("svg:svg")
+		  .attr("height", donut_chart.keys(colors).length * (li.h + li.s));
+
+	  var g = legend.selectAll("g")
+		  .data(donut_chart.entries(colors))
+		  .enter().append("svg:g")
+		  .attr("transform", function(d, i) {
+				  return "translate(0," + i * (li.h + li.s) + ")";
+			   });
+
+	  g.append("svg:rect")
+		  .attr("rx", li.r)
+		  .attr("ry", li.r)
+		  .attr("width", li.w)
+		  .attr("height", li.h)
+		  .style("fill", function(d) { return d.value; });
+
+	  g.append("svg:text")
+		  .attr("x", li.d )
+		  .attr("y", li.h / 2)
+		  .attr("dy", "0.35em")
+		  .attr("text-anchor", "start")
+		  .text(function(d) { return d.key; });
+	}
+
+	function toggleLegend() {
+	  var legend = donut_chart.select("#legend");
+	  if (legend.style("visibility") == "hidden") {
+		legend.style("visibility", "");
+	  } else {
+		legend.style("visibility", "hidden");
+	  }
+	}
+
+	function autoExpand() {
+		var length = _root.children.length;
+		var start = index;
+		var children_length=0;
+		var children_start = children_index;
+		var children_node;
+		var node;
+		for (var i = start; i < length; i++) {
+			 node = _root.children[i];
+			 if(_parents==0){
+				_parents=1;
+				break;
+			 }  
+			if (node.children || node._children) { 
+				children_length=node.children.length;
+				children_node = node.children[children_start];
+				mouseover(children_node);
+				children_index++;
+				if (children_index > children_length - 1) {
+					children_index = 0;
+					_parents=0;
+					index++;
+				}
+				break;
+			}else{
+				_parents=0;
+			}
+		}
+		if (index > length - 1) index = 0;
+	} 
+</script>
