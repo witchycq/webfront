@@ -11,7 +11,7 @@ css 公用css<br/>
     <br/>
     
 
-<a style="font-size:30px" href="#" >演示地址</a>
+<a style="font-size:30px" href="#" target="_blank">演示地址</a>
 
 
 联系邮箱
@@ -20,4 +20,4 @@ css 公用css<br/>
 <img style="max-width:100%;" data-canonical-src="https://raw.github.com/JacksonTian/fks/master/figures/fks.jpg" alt="前端知识结构" src="https://camo.githubusercontent.com/6797bdc1a11d35369611c817bbd5dae9a162d775/68747470733a2f2f7261772e6769746875622e636f6d2f4a61636b736f6e5469616e2f666b732f6d61737465722f666967757265732f666b732e6a7067">
 
 
-<a href="http://html5ify.com/fks/fks_chart/" style="font-size:30px"> 特效</a>
+<a href="http://html5ify.com/fks/fks_chart/" style="font-size:30px" target="_blank"> 另一种方式看</a>
